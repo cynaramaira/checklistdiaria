@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronograma Semanal - Redação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .task-completed {
+            text-decoration: line-through;
+            color: #6b7280; /* gray-500 */
+        }
+        .task-completed span {
+            opacity: 0.7;
+        }
+        .day-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid #e5e7eb;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Password Modal Styles */
+        #password-modal {
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+
+    <!-- Password Modal -->
+    <div id="password-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-sm text-center">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">Acesso Restrito</h2>
+            <p class="text-slate-600 mb-6">Por favor, insira a senha para continuar.</p>
+            <input type="password" id="password-input" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Senha">
+            <p id="error-message" class="text-red-500 text-sm mt-2 h-5"></p>
+            <button id="submit-password" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg mt-4 transition-transform transform hover:scale-105">
+                Entrar
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content (Initially Hidden) -->
+    <div id="main-content" class="container mx-auto px-4 py-8 max-w-7xl hidden fade-in">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-slate-800 mb-2">📅 Cronograma Semanal da Redação</h1>
+            <p class="text-slate-600 text-lg">Gestão flexível com foco nas entregas semanais</p>
+            <div class="mt-4 flex justify-center items-center space-x-6">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="weekProgress">0%</div>
+                    <div class="text-sm text-slate-500">Progresso Semanal</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600" id="dailyGoal">0/10</div>
+                    <div class="text-sm text-slate-500">Meta Diária (Matérias)</div>
+                </div>
+            </div>
+             <!-- Link to YouTube Report -->
+            <div class="mt-6">
+                <a href="https://cynaramaira.github.io/dadosyt/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center bg-white hover:bg-slate-100 text-slate-700 font-semibold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 border border-slate-200">
+                    <svg class="w-5 h-5 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8.002v3.996a1 1 0 001.555.832l3.196-1.998a1 1 0 000-1.664l-3.196-1.998z" clip-rule="evenodd"></path></svg>
+                    Análise de Relatório do YouTube
+                </a>
+            </div>
+        </div>
+
+        <!-- Daily Goal Tracker -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-semibold text-slate-800 mb-4">🎯 Meta Diária: 8-10 Matérias Exclusivas</h3>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+                <div class="text-center"><span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm block mb-1">Ana Luiza</span><span class="text-xs text-slate-600">1-2 matérias/dia</span></div>
+                <div class="text-center"><span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm block mb-1">Cynara</span><span class="text-xs text-slate-600">1-2 matérias/dia</span></div>
+                <div class="text-center"><span class="px-3 py-1 bg-pink-100 text-pink-800 rounded-full text-sm block mb-1">Clara</span><span class="text-xs text-slate-600">1-2 matérias/dia</span></div>
+                <div class="text-center"><span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm block mb-1">Pedro</span><span class="text-xs text-slate-600">1-2 matérias/dia</span></div>
+                <div class="text-center"><span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm block mb-1">Jamildo</span><span class="text-xs text-slate-600">2-3 matérias/dia</span></div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <label class="text-slate-700 font-medium">Matérias publicadas hoje:</label>
+                <div class="flex space-x-2">
+                    <button onclick="updateDailyGoal(-1)" class="w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors">-</button>
+                    <span class="w-12 text-center font-bold text-lg" id="dailyCount">0</span>
+                    <button onclick="updateDailyGoal(1)" class="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center transition-colors">+</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Schedule -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Monday -->
+            <div class="day-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4"><h3 class="text-xl font-semibold text-slate-800">🌅 Segunda-feira</h3><div class="text-sm text-slate-500" id="monday-progress">0/6 concluído</div></div>
+                <div class="space-y-3">
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>9h:</strong> Reunião de pauta semanal (30 min) - Alinhar coberturas, vídeos e podcast</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Manhã:</strong> Jamildo grava vídeo longo + produz 2-3 matérias</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Manhã/Tarde:</strong> Clara edita vídeo longo + produz 1-2 matérias</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Pedro apura projetos especiais + produz 1-2 matérias</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Cynara produz 1-2 matérias + otimiza campanhas</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>1-2h:</strong> Ana Luiza resolve demandas administrativas + produz 1-2 matérias</span></label>
+                </div>
+            </div>
+            <!-- Tuesday -->
+            <div class="day-card bg-white rounded-xl shadow-lg p-6">
+                 <div class="flex items-center justify-between mb-4"><h3 class="text-xl font-semibold text-slate-800">🎬 Terça-feira</h3><div class="text-sm text-slate-500" id="tuesday-progress">0/5 concluído</div></div>
+                <div class="space-y-3">
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Manhã:</strong> Jamildo grava 2 vídeos curtos + produz 2-3 matérias</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Manhã/Tarde:</strong> Clara edita vídeos curtos + produz 1-2 matérias</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Pedro produz 1-2 matérias + projetos especiais</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Cynara produz 1-2 matérias + campanhas AdManager</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>1-2h:</strong> Ana Luiza demandas administrativas + produz 1-2 matérias</span></label>
+                </div>
+            </div>
+            <!-- Other days follow the same structure... -->
+            <!-- Wednesday -->
+            <div class="day-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4"><h3 class="text-xl font-semibold text-slate-800">📹 Quarta-feira</h3><div class="text-sm text-slate-500" id="wednesday-progress">0/5 concluído</div></div>
+                <div class="space-y-3">
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Manhã:</strong> Jamildo grava 3º vídeo curto + produz 2-3 matérias</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Manhã/Tarde:</strong> Clara edita vídeo curto + produz 1-2 matérias</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Pedro produz 1-2 matérias + projetos especiais</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Cynara produz 1-2 matérias + campanhas AdManager</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>1-2h:</strong> Ana Luiza demandas administrativas + produz 1-2 matérias</span></label>
+                </div>
+            </div>
+            <!-- Thursday -->
+            <div class="day-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4"><h3 class="text-xl font-semibold text-slate-800">🎙️ Quinta-feira</h3><div class="text-sm text-slate-500" id="thursday-progress">0/5 concluído</div></div>
+                <div class="space-y-3">
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Manhã/Tarde:</strong> Gravação do Podcast (Pedro opera, Jamildo participa)</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Jamildo produz 2-3 matérias + participa do podcast</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Clara produz 1-2 matérias + edições pendentes</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Cynara produz 1-2 matérias + campanhas AdManager</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>1-2h:</strong> Ana Luiza demandas administrativas + produz 1-2 matérias</span></label>
+                </div>
+            </div>
+            <!-- Friday -->
+            <div class="day-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4"><h3 class="text-xl font-semibold text-slate-800">✂️ Sexta-feira</h3><div class="text-sm text-slate-500" id="friday-progress">0/7 concluído</div></div>
+                <div class="space-y-3">
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Manhã:</strong> Cynara edita podcast + prepara cortes para redes sociais</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Tarde:</strong> Planejamento das pautas da próxima semana (toda equipe)</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Jamildo produz 2-3 matérias</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Clara finaliza edições pendentes + produz 1-2 matérias</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Pedro produz 1-2 matérias + projetos especiais</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia todo:</strong> Cynara produz 1-2 matérias + campanhas AdManager</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>1-2h:</strong> Ana Luiza demandas administrativas + produz 1-2 matérias</span></label>
+                </div>
+            </div>
+            <!-- Saturday -->
+            <div class="day-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-4"><h3 class="text-xl font-semibold text-slate-800">📻 Sábado</h3><div class="text-sm text-slate-500" id="saturday-progress">0/2 concluído</div></div>
+                <div class="space-y-3">
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>14h:</strong> Publicação do Podcast</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia:</strong> Pedro atua na atualização do site</span></label>
+                </div>
+            </div>
+        </div>
+        <!-- Sunday -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex items-center justify-between mb-4"><h3 class="text-xl font-semibold text-slate-800">🔄 Domingo</h3><div class="text-sm text-slate-500" id="sunday-progress">0/1 concluído</div></div>
+            <div class="space-y-3">
+                <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>Dia:</strong> Pedro continua atualizações do site</span></label>
+            </div>
+        </div>
+
+        <!-- Daily Checklist -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-2xl font-semibold text-slate-800 mb-6">📋 Checklist Diário da Equipe</h3>
+            <div class="mb-8">
+                <h4 class="text-lg font-semibold text-blue-800 mb-4 flex items-center"><span class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">🌅</span>MANHÃ (ABERTURA - 07h-09h)</h4>
+                <div class="space-y-3 ml-11">
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>(Ana Luiza/Cynara)</strong> Verificação do noticiário noturno e definição de pautas prioritárias</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>(Ana Luiza)</strong> Comunicar no grupo as pautas em andamento e prioridades do dia</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-blue-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>(Ana Luiza)</strong> Revisar o Trello para pendências e projetos em andamento</span></label>
+                </div>
+            </div>
+            <div class="mb-8">
+                 <h4 class="text-lg font-semibold text-green-800 mb-4 flex items-center"><span class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">⚡</span>FLUXO CONTÍNUO (09h-17h)</h4>
+                <div class="space-y-3 ml-11">
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-green-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>(Todos os Repórteres)</strong> Focar na apuração e redação das matérias diárias</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-green-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>(Todos os Repórteres)</strong> Avisar no grupo ao iniciar uma nova pauta</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-green-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>(Ana Luiza)</strong> [GATILHO] Distribuir conteúdo imediatamente em todas as redes sociais</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-green-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>(Clara)</strong> Verificar e editar vídeos brutos, priorizando agilidade</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-green-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>(Cynara)</strong> Checar e otimizar campanhas no AdManager</span></label>
+                </div>
+            </div>
+            <div class="mb-6">
+                <h4 class="text-lg font-semibold text-purple-800 mb-4 flex items-center"><span class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3">🌙</span>FIM DO DIA (FECHAMENTO - após 16h)</h4>
+                <div class="space-y-3 ml-11">
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-purple-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>(Ana Luiza)</strong> Verificar se todo conteúdo foi publicado e distribuído</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-purple-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>(Ana Luiza)</strong> Deixar resumo do dia e pautas para a equipe da manhã seguinte</span></label>
+                    <label class="flex items-start space-x-3 cursor-pointer"><input type="checkbox" class="mt-1 w-5 h-5 text-purple-600 rounded" onchange="saveProgress()"><span class="text-slate-700"><strong>(Ana Luiza)</strong> Atualizar o Trello com status dos projetos e pautas do dia</span></label>
+                </div>
+            </div>
+            <!-- Reset Button -->
+            <div class="text-center pt-6 border-t border-slate-200">
+                <button onclick="resetAll()" class="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    🔄 Resetar Tudo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- PASSWORD PROTECTION ---
+        const passwordModal = document.getElementById('password-modal');
+        const mainContent = document.getElementById('main-content');
+        const passwordInput = document.getElementById('password-input');
+        const submitPasswordBtn = document.getElementById('submit-password');
+        const errorMessage = document.getElementById('error-message');
+        const correctPassword = 'obama2020';
+
+        function checkPassword() {
+            if (passwordInput.value === correctPassword) {
+                passwordModal.style.opacity = '0';
+                setTimeout(() => {
+                    passwordModal.classList.add('hidden');
+                    mainContent.classList.remove('hidden');
+                    // Initialize Firebase only after correct password
+                    initializeAppAndAuth();
+                }, 300); // Wait for fade-out transition
+            } else {
+                errorMessage.textContent = 'Senha incorreta. Tente novamente.';
+                passwordInput.classList.add('border-red-500');
+                passwordInput.value = '';
+            }
+        }
+
+        submitPasswordBtn.addEventListener('click', checkPassword);
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+        
+        // --- FIREBASE & APP LOGIC ---
+        let db;
+        let auth;
+        let dataRef;
+        let dailyCount = 0;
+        let isUpdatingFromFirestore = false; // Flag to prevent feedback loops
+
+        // These variables are provided by the environment
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        async function initializeAppAndAuth() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // Path to the shared document for this app instance
+                dataRef = doc(db, `artifacts/${appId}/public/data/schedule/mainState`);
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        console.log("Authenticated successfully. User ID:", user.uid);
+                        // Listen for real-time updates
+                        listenForUpdates();
+                    } else {
+                        console.log("No user is signed in. Attempting to sign in.");
+                        signIn();
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+                alert("Não foi possível conectar ao serviço de dados. A colaboração em tempo real está desativada.");
+            }
+        }
+
+        async function signIn() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Firebase sign-in error:", error);
+            }
+        }
+        
+        // Listen for real-time changes from Firestore
+        function listenForUpdates() {
+            onSnapshot(dataRef, (doc) => {
+                isUpdatingFromFirestore = true; // Set flag
+                console.log("Received update from Firestore.");
+                if (doc.exists()) {
+                    const data = doc.data();
+                    // Restore daily count
+                    dailyCount = data.dailyCount || 0;
+                    updateDailyGoalUI(0);
+
+                    // Restore checkboxes
+                    const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
+                    if (data.checkboxes && data.checkboxes.length === allCheckboxes.length) {
+                        allCheckboxes.forEach((cb, index) => {
+                            cb.checked = data.checkboxes[index] || false;
+                        });
+                    }
+                } else {
+                    // If no document exists, create one with the initial state
+                    console.log("No data found, creating initial document.");
+                    saveProgress();
+                }
+                updateAllProgressUI();
+                isUpdatingFromFirestore = false; // Unset flag
+            }, (error) => {
+                console.error("Error listening for updates:", error);
+            });
+        }
+
+        // Save the entire state to Firestore
+        window.saveProgress = async function() {
+            // Prevent saving if the update came from Firestore itself
+            if (isUpdatingFromFirestore) return;
+
+            console.log("Saving progress to Firestore...");
+            const checkboxStates = Array.from(document.querySelectorAll('input[type="checkbox"]')).map(cb => cb.checked);
+            
+            const progressData = {
+                checkboxes: checkboxStates,
+                dailyCount: dailyCount,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            try {
+                await setDoc(dataRef, progressData, { merge: true });
+                console.log("Progress saved successfully.");
+            } catch (error) {
+                console.error("Error saving progress to Firestore:", error);
+            }
+        }
+
+        // --- UI Update Functions ---
+        window.updateDailyGoal = function(change) {
+            dailyCount = Math.max(0, dailyCount + change);
+            updateDailyGoalUI();
+            saveProgress(); // Save state after change
+        }
+
+        function updateDailyGoalUI() {
+            document.getElementById('dailyCount').textContent = dailyCount;
+            document.getElementById('dailyGoal').textContent = `${dailyCount}/10`;
+            const goalElement = document.getElementById('dailyGoal');
+            if (dailyCount >= 8) {
+                goalElement.className = 'text-2xl font-bold text-green-600';
+            } else if (dailyCount >= 6) {
+                goalElement.className = 'text-2xl font-bold text-yellow-500';
+            } else {
+                goalElement.className = 'text-2xl font-bold text-red-600';
+            }
+        }
+        
+        function updateAllProgressUI() {
+            // Weekly progress
+            const daySections = {
+                monday: { start: 0, count: 6 },
+                tuesday: { start: 6, count: 5 },
+                wednesday: { start: 11, count: 5 },
+                thursday: { start: 16, count: 5 },
+                friday: { start: 21, count: 7 },
+                saturday: { start: 28, count: 2 },
+                sunday: { start: 30, count: 1 }
+            };
+
+            const allCheckboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+            let totalWeeklyCompleted = 0;
+            let totalWeeklyTasks = 0;
+
+            for (const [day, range] of Object.entries(daySections)) {
+                const dayCheckboxes = allCheckboxes.slice(range.start, range.start + range.count);
+                const completed = dayCheckboxes.filter(cb => cb.checked).length;
+                totalWeeklyCompleted += completed;
+                totalWeeklyTasks += dayCheckboxes.length;
+                document.getElementById(`${day}-progress`).textContent = `${completed}/${range.count} concluído`;
+                dayCheckboxes.forEach(cb => {
+                    cb.closest('label').classList.toggle('task-completed', cb.checked);
+                });
+            }
+            
+            const weeklyPercentage = totalWeeklyTasks > 0 ? Math.round((totalWeeklyCompleted / totalWeeklyTasks) * 100) : 0;
+            document.getElementById('weekProgress').textContent = `${weeklyPercentage}%`;
+
+            // Daily checklist progress
+            const dailyCheckboxes = allCheckboxes.slice(31);
+            dailyCheckboxes.forEach(checkbox => {
+                checkbox.closest('label').classList.toggle('task-completed', checkbox.checked);
+            });
+        }
+
+        window.resetAll = async function() {
+            console.log("Resetting all progress.");
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            dailyCount = 0;
+            updateDailyGoalUI();
+            updateAllProgressUI();
+            await saveProgress(); // Save the reset state to Firestore
+        }
+    </script>
+</body>
+</html>
