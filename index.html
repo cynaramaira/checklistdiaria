@@ -303,25 +303,33 @@
         // Listen for real-time changes from Firestore
         function listenForUpdates() {
             onSnapshot(dataRef, (doc) => {
-                isUpdatingFromFirestore = true;
+                isUpdatingFromFirestore = true; // Prevent feedback loop
                 console.log("Received update from Firestore.");
+                
                 if (doc.exists()) {
                     const data = doc.data();
+                    
+                    // Restore daily count from Firestore
                     dailyCount = data.dailyCount || 0;
-                    updateDailyGoalUI(0);
-
+                    
+                    // Restore checkboxes from Firestore
                     const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
                     if (data.checkboxes && data.checkboxes.length === allCheckboxes.length) {
                         allCheckboxes.forEach((cb, index) => {
                             cb.checked = data.checkboxes[index] || false;
                         });
                     }
-                } else {
-                    console.log("No data found, creating initial document.");
-                    saveProgress();
-                }
+                } 
+                // If doc doesn't exist, the page will simply load with its default HTML state.
+                // The first user action (checking a box, changing the counter) will trigger 
+                // saveProgress() and create the document in Firestore for the first time.
+                // This prevents the race condition of overwriting data.
+
+                // After loading data (or not), update all UI elements to reflect the current state.
+                updateDailyGoalUI();
                 updateAllProgressUI();
-                isUpdatingFromFirestore = false;
+                
+                isUpdatingFromFirestore = false; // Re-enable saving
             }, (error) => {
                 console.error("Error listening for updates:", error);
             });
