@@ -212,8 +212,8 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- PASSWORD PROTECTION ---
         const passwordModal = document.getElementById('password-modal');
@@ -253,9 +253,15 @@
         let dailyCount = 0;
         let isUpdatingFromFirestore = false; // Flag to prevent feedback loops
 
-        // These variables are provided by the environment
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDfHBl73bgRSX3CNwSN0b5LNwTqDO6ueOw",
+            authDomain: "cronograma-redacao.firebaseapp.com",
+            projectId: "cronograma-redacao",
+            storageBucket: "cronograma-redacao.appspot.com",
+            messagingSenderId: "138726887871",
+            appId: "1:138726887871:web:bd89a639e9bd4bdfcf910a"
+        };
 
         async function initializeAppAndAuth() {
             try {
@@ -263,50 +269,47 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
-                // Path to the shared document for this app instance
-                dataRef = doc(db, `artifacts/${appId}/public/data/schedule/mainState`);
+                // Simplified path for standalone use
+                dataRef = doc(db, "scheduleData", "mainState");
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         console.log("Authenticated successfully. User ID:", user.uid);
-                        // Listen for real-time updates
                         listenForUpdates();
                     } else {
-                        console.log("No user is signed in. Attempting to sign in.");
-                        signIn();
+                        console.log("No user is signed in. Attempting to sign in anonymously.");
+                        signInAnonymously(auth).catch(error => {
+                             console.error("Anonymous sign-in error:", error);
+                        });
                     }
                 });
 
             } catch (error) {
                 console.error("Error initializing Firebase:", error);
-                alert("Não foi possível conectar ao serviço de dados. A colaboração em tempo real está desativada.");
-            }
-        }
-
-        async function signIn() {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Firebase sign-in error:", error);
+                // Use a more user-friendly modal for the error message
+                const errorDiv = document.createElement('div');
+                errorDiv.innerHTML = `
+                    <div class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50">
+                        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm mx-auto text-center">
+                            <h3 class="text-lg font-medium text-slate-900 mb-4">Erro de Conexão</h3>
+                            <p class="text-sm text-slate-600">Não foi possível conectar ao serviço de dados. A colaboração em tempo real está desativada.</p>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(errorDiv);
             }
         }
         
         // Listen for real-time changes from Firestore
         function listenForUpdates() {
             onSnapshot(dataRef, (doc) => {
-                isUpdatingFromFirestore = true; // Set flag
+                isUpdatingFromFirestore = true;
                 console.log("Received update from Firestore.");
                 if (doc.exists()) {
                     const data = doc.data();
-                    // Restore daily count
                     dailyCount = data.dailyCount || 0;
                     updateDailyGoalUI(0);
 
-                    // Restore checkboxes
                     const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
                     if (data.checkboxes && data.checkboxes.length === allCheckboxes.length) {
                         allCheckboxes.forEach((cb, index) => {
@@ -314,12 +317,11 @@
                         });
                     }
                 } else {
-                    // If no document exists, create one with the initial state
                     console.log("No data found, creating initial document.");
                     saveProgress();
                 }
                 updateAllProgressUI();
-                isUpdatingFromFirestore = false; // Unset flag
+                isUpdatingFromFirestore = false;
             }, (error) => {
                 console.error("Error listening for updates:", error);
             });
@@ -327,7 +329,6 @@
 
         // Save the entire state to Firestore
         window.saveProgress = async function() {
-            // Prevent saving if the update came from Firestore itself
             if (isUpdatingFromFirestore) return;
 
             console.log("Saving progress to Firestore...");
@@ -351,7 +352,7 @@
         window.updateDailyGoal = function(change) {
             dailyCount = Math.max(0, dailyCount + change);
             updateDailyGoalUI();
-            saveProgress(); // Save state after change
+            saveProgress();
         }
 
         function updateDailyGoalUI() {
@@ -368,7 +369,6 @@
         }
         
         function updateAllProgressUI() {
-            // Weekly progress
             const daySections = {
                 monday: { start: 0, count: 6 },
                 tuesday: { start: 6, count: 5 },
@@ -397,7 +397,6 @@
             const weeklyPercentage = totalWeeklyTasks > 0 ? Math.round((totalWeeklyCompleted / totalWeeklyTasks) * 100) : 0;
             document.getElementById('weekProgress').textContent = `${weeklyPercentage}%`;
 
-            // Daily checklist progress
             const dailyCheckboxes = allCheckboxes.slice(31);
             dailyCheckboxes.forEach(checkbox => {
                 checkbox.closest('label').classList.toggle('task-completed', checkbox.checked);
@@ -412,7 +411,7 @@
             dailyCount = 0;
             updateDailyGoalUI();
             updateAllProgressUI();
-            await saveProgress(); // Save the reset state to Firestore
+            await saveProgress();
         }
     </script>
 </body>
